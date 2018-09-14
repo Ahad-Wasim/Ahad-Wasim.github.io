@@ -142,7 +142,6 @@ document.addEventListener('DOMContentLoaded', () => {
       }
   
       if(data.streams.length > 0){
-        console.log(data.streams[0]._id);
         this.renderNavigator(data)
         data.streams.forEach((stream) => {
           const card = document.createElement('div');
@@ -157,7 +156,7 @@ document.addEventListener('DOMContentLoaded', () => {
           const { game, logo, status, display_name } = stream.channel;
     
           card.className = 'card flex-row flex-wrap';
-          cardHeader.className = 'card-header border-0';
+          cardHeader.className = 'card-header border-0 entityImage';
           cardBlock.className = 'card-block card-width';
     
     

@@ -121,3 +121,49 @@ body {
   text-align: center;
   margin-top: 10%;
 }
+
+/* Portrait tablet to landscape and desktop */
+@media (min-width: 768px) and (max-width: 992px) {
+  .entityImage {
+    margin: 0 auto;
+  }
+
+  .card-width {
+    margin: 0 auto;
+  }
+
+  .card-width h4, .card-width p {
+    text-align: center;
+  }
+}
+
+/* Landscape phone to portrait tablet */
+@media (max-width: 767px) {
+  .entityImage {
+    margin: 0 auto;
+  }
+
+  .card-width {
+    margin: 0 auto;
+  }
+
+  .card-width h4, .card-width p {
+    text-align: center;
+  }
+}
+
+/* Landscape phones and down */
+@media (max-width: 480px) {
+  .entityImage {
+    margin: 0 auto;
+  }
+
+  .card-width {
+    margin: 0 auto;
+  }
+
+  .card-width h4, .card-width p {
+    text-align: center;
+  }
+}
+
