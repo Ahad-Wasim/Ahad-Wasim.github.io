@@ -5,12 +5,15 @@ document.addEventListener('DOMContentLoaded', () => {
       this.streamsResults = [];
       this.streamResultHandlers = [];
       this.query = null;
-      this.offset = 1;
+      this.offset = 0;
+      this.limit = 6;
       this.twitchAPI = new TwitchAPI();
     }
 
     updateStreamResults(data) {
-      this.streamsResults = data.streams;
+      data._offset = this.offset;
+      data._limit = this.limit;
+      this.streamsResults = data;
       this.streamResultHandlers.forEach(func => func(this.streamsResults));
     }
 
@@ -20,13 +23,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     fetchQuery(query) {
 
-       // if we are searching for something new
+       // if we are searching for a new stream
       if(this.query !== query) {
-        this.offset = 1;
+        this.offset = 0;
         this.query = query;
       }
 
-      this.twitchAPI.searchStream(query, this.offset)
+      this.twitchAPI.searchStream(query, this.limit, this.offset)
         .then(data => {
           this.updateStreamResults(data);
         })
@@ -36,23 +39,30 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     previousPage() {
-      this.twitchAPI.searchStream(null, --this.offset)
-      .then(data => {
-        this.updateStreamResults(data);
-      })
-      .catch(err => {
-        console.log('error', err)
-      });
+      if(this.limit <= this.offset) {
+        this.offset -= this.limit;
+        this.twitchAPI.searchStream(this.query, this.limit, this.offset)
+        .then(data => {
+          this.updateStreamResults(data);
+        })
+        .catch(err => {
+          console.log('error', err)
+        });
+      }
     }
 
     nextPage() {
-      this.twitchAPI.searchStream(null, ++this.offset)
-      .then(data => {
-        this.updateStreamResults(data);
-      })
-      .catch(err => {
-        console.log('error', err)
-      });
+      if(this.offset + this.limit <= this.streamsResults._total) {
+        this.streamsResults._total;
+        this.offset += this.limit;
+        this.twitchAPI.searchStream(this.query, this.limit, this.offset)
+        .then(data => {
+          this.updateStreamResults(data);
+        })
+        .catch(err => {
+          console.log('error', err)
+        });
+      }
     }
 
   }
@@ -105,9 +115,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
       wrapper.id = 'topHeader';
-      wrapper.classList.add('clearfix')
-      results.innerText = `Total Results: ${data.length}`;
+      wrapper.classList.add('clearfix');
+      results.innerText = `Total Results: ${data._total}`;
       pageTracker.classList.add('pageTracker');
+      
+      // start index from 1
+      let currentPage = Math.floor(data._offset / data._limit) + 1;
+      let denominator = Math.floor(data._total / data._limit) + 1;
+
+      pageTracker.innerText = `  ${currentPage} / ${denominator}  ` 
       leftPointer.classList.add('triangle-left');
       rightPointer.classList.add('triangle-right');
 
@@ -124,10 +140,11 @@ document.addEventListener('DOMContentLoaded', () => {
       if(this.component.hasChildNodes()) {
         this.component.innerHTML = '';
       }
-
-      if(data.length > 0){
+  
+      if(data.streams.length > 0){
+        console.log(data.streams[0]._id);
         this.renderNavigator(data)
-        data.forEach((stream) => {
+        data.streams.forEach((stream) => {
           const card = document.createElement('div');
           const cardHeader = document.createElement('div');
           const img = document.createElement('img');
@@ -141,7 +158,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
           card.className = 'card flex-row flex-wrap';
           cardHeader.className = 'card-header border-0';
-          cardBlock.className = 'card-block px-2';
+          cardBlock.className = 'card-block card-width';
     
     
           cardBlockHeader.classList.add('card-title');
@@ -153,7 +170,6 @@ document.addEventListener('DOMContentLoaded', () => {
           cardBlockParagraphOne.innerText = status;
     
           img.src = logo;
-          img.classList.add('streamImage');
           cardHeader.appendChild(img);
     
           cardBlock.appendChild(cardBlockHeader);
@@ -170,8 +186,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
   class StreamBoardModel {
     constructor(applicationModel) {
-      this.totalResults = 0;
-      this.pageNumber = '0/0';
       this.streamsResults = applicationModel.streamsResults;
     }
   }
@@ -252,7 +266,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   class SearchInputModel {
     constructor() {
-      this.inputText = '';
+      this.inputText = 'fortnite';
     }
 
     updateInputText(value) {
@@ -282,6 +296,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const streamBoardView = new StreamBoardView(applicationController);
     const streamBoardController = new StreamBoardController(streamBoardView, applicationController);
 
+    applicationModel.fetchQuery(twitchInputModel.inputText);
   };
 
   instantiateApp();
